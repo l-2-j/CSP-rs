@@ -77,7 +77,7 @@ pub struct CSP<'a>(Vec<Directive<'a>>);
 /// [`Directive`]: Directive
 pub struct Sources<'a>(Vec<Source<'a>>);
 
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Default, Clone, PartialEq, Eq)]
 /// Used for `PluginTypes` [`Directive`].
 ///
 /// # Example usage
@@ -119,7 +119,7 @@ pub enum SriFor {
   ScriptStyle,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 /// The source that a bunch of directives can have multiple of.
 ///
 /// If nothing gets added, becomes 'none'.
@@ -198,7 +198,7 @@ pub enum Source<'a> {
   ReportSample,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 /// Optionally used for the `Sandbox` directive. Not using it but using the
 /// sandbox directive disallows everything that you could allow with the
 /// optional values.
@@ -513,6 +513,257 @@ impl<'a> CSP<'a> {
     self.0.push(directive);
     self
   }
+
+  /// Merge duplicate directives. For directives that carry repeated entries, the entries are
+  /// unioned (no duplicates); for other directives, the *first* wins.
+  pub fn normalize(self) -> Self {
+    use Directive::*;
+    let mut out: Vec<Directive<'a>> = Vec::with_capacity(self.0.len());
+
+    for d in self.0 {
+      match d {
+        BaseUri(s) => {
+          if let Some(BaseUri(existing)) =
+            out.iter_mut().find(|x| matches!(x, BaseUri(_)))
+          {
+            existing.extend_unique(s);
+          } else {
+            out.push(BaseUri(s));
+          }
+        }
+        ChildSrc(s) => {
+          if let Some(ChildSrc(existing)) =
+            out.iter_mut().find(|x| matches!(x, ChildSrc(_)))
+          {
+            existing.extend_unique(s);
+          } else {
+            out.push(ChildSrc(s));
+          }
+        }
+        ConnectSrc(s) => {
+          if let Some(ConnectSrc(existing)) =
+            out.iter_mut().find(|x| matches!(x, ConnectSrc(_)))
+          {
+            existing.extend_unique(s);
+          } else {
+            out.push(ConnectSrc(s));
+          }
+        }
+        DefaultSrc(s) => {
+          if let Some(DefaultSrc(existing)) =
+            out.iter_mut().find(|x| matches!(x, DefaultSrc(_)))
+          {
+            existing.extend_unique(s);
+          } else {
+            out.push(DefaultSrc(s));
+          }
+        }
+        FontSrc(s) => {
+          if let Some(FontSrc(existing)) =
+            out.iter_mut().find(|x| matches!(x, FontSrc(_)))
+          {
+            existing.extend_unique(s);
+          } else {
+            out.push(FontSrc(s));
+          }
+        }
+        FormAction(s) => {
+          if let Some(FormAction(existing)) =
+            out.iter_mut().find(|x| matches!(x, FormAction(_)))
+          {
+            existing.extend_unique(s);
+          } else {
+            out.push(FormAction(s));
+          }
+        }
+        FrameAncestors(s) => {
+          if let Some(FrameAncestors(existing)) =
+            out.iter_mut().find(|x| matches!(x, FrameAncestors(_)))
+          {
+            existing.extend_unique(s);
+          } else {
+            out.push(FrameAncestors(s));
+          }
+        }
+        FrameSrc(s) => {
+          if let Some(FrameSrc(existing)) =
+            out.iter_mut().find(|x| matches!(x, FrameSrc(_)))
+          {
+            existing.extend_unique(s);
+          } else {
+            out.push(FrameSrc(s));
+          }
+        }
+        ImgSrc(s) => {
+          if let Some(ImgSrc(existing)) = out.iter_mut().find(|x| matches!(x, ImgSrc(_)))
+          {
+            existing.extend_unique(s);
+          } else {
+            out.push(ImgSrc(s));
+          }
+        }
+        ManifestSrc(s) => {
+          if let Some(ManifestSrc(existing)) =
+            out.iter_mut().find(|x| matches!(x, ManifestSrc(_)))
+          {
+            existing.extend_unique(s);
+          } else {
+            out.push(ManifestSrc(s));
+          }
+        }
+        MediaSrc(s) => {
+          if let Some(MediaSrc(existing)) =
+            out.iter_mut().find(|x| matches!(x, MediaSrc(_)))
+          {
+            existing.extend_unique(s);
+          } else {
+            out.push(MediaSrc(s));
+          }
+        }
+        NavigateTo(s) => {
+          if let Some(NavigateTo(existing)) =
+            out.iter_mut().find(|x| matches!(x, NavigateTo(_)))
+          {
+            existing.extend_unique(s);
+          } else {
+            out.push(NavigateTo(s));
+          }
+        }
+        ObjectSrc(s) => {
+          if let Some(ObjectSrc(existing)) =
+            out.iter_mut().find(|x| matches!(x, ObjectSrc(_)))
+          {
+            existing.extend_unique(s);
+          } else {
+            out.push(ObjectSrc(s));
+          }
+        }
+        PrefetchSrc(s) => {
+          if let Some(PrefetchSrc(existing)) =
+            out.iter_mut().find(|x| matches!(x, PrefetchSrc(_)))
+          {
+            existing.extend_unique(s);
+          } else {
+            out.push(PrefetchSrc(s));
+          }
+        }
+        ScriptSrc(s) => {
+          if let Some(ScriptSrc(existing)) =
+            out.iter_mut().find(|x| matches!(x, ScriptSrc(_)))
+          {
+            existing.extend_unique(s);
+          } else {
+            out.push(ScriptSrc(s));
+          }
+        }
+        ScriptSrcAttr(s) => {
+          if let Some(ScriptSrcAttr(existing)) =
+            out.iter_mut().find(|x| matches!(x, ScriptSrcAttr(_)))
+          {
+            existing.extend_unique(s);
+          } else {
+            out.push(ScriptSrcAttr(s));
+          }
+        }
+        ScriptSrcElem(s) => {
+          if let Some(ScriptSrcElem(existing)) =
+            out.iter_mut().find(|x| matches!(x, ScriptSrcElem(_)))
+          {
+            existing.extend_unique(s);
+          } else {
+            out.push(ScriptSrcElem(s));
+          }
+        }
+        StyleSrc(s) => {
+          if let Some(StyleSrc(existing)) =
+            out.iter_mut().find(|x| matches!(x, StyleSrc(_)))
+          {
+            existing.extend_unique(s);
+          } else {
+            out.push(StyleSrc(s));
+          }
+        }
+        StyleSrcAttr(s) => {
+          if let Some(StyleSrcAttr(existing)) =
+            out.iter_mut().find(|x| matches!(x, StyleSrcAttr(_)))
+          {
+            existing.extend_unique(s);
+          } else {
+            out.push(StyleSrcAttr(s));
+          }
+        }
+        StyleSrcElem(s) => {
+          if let Some(StyleSrcElem(existing)) =
+            out.iter_mut().find(|x| matches!(x, StyleSrcElem(_)))
+          {
+            existing.extend_unique(s);
+          } else {
+            out.push(StyleSrcElem(s));
+          }
+        }
+        WorkerSrc(s) => {
+          if let Some(WorkerSrc(existing)) =
+            out.iter_mut().find(|x| matches!(x, WorkerSrc(_)))
+          {
+            existing.extend_unique(s);
+          } else {
+            out.push(WorkerSrc(s));
+          }
+        }
+
+        Sandbox(allowed) => {
+          if let Some(Sandbox(existing)) =
+            out.iter_mut().find(|x| matches!(x, Sandbox(_)))
+          {
+            existing.extend_unique(allowed);
+          } else {
+            out.push(Sandbox(allowed));
+          }
+        }
+
+        PluginTypes(plugins) => {
+          if let Some(PluginTypes(existing)) =
+            out.iter_mut().find(|x| matches!(x, PluginTypes(_)))
+          {
+            existing.extend_unique(plugins);
+          } else {
+            out.push(PluginTypes(plugins));
+          }
+        }
+
+        TrustedTypes(types) => {
+          if let Some(TrustedTypes(existing)) =
+            out.iter_mut().find(|x| matches!(x, TrustedTypes(_)))
+          {
+            for t in types {
+              if !existing.contains(&t) {
+                existing.push(t);
+              }
+            }
+          } else {
+            out.push(TrustedTypes(types));
+          }
+        }
+
+        // For non sources cases, they can't be merged so we keep the *first* instance (same as the spec if directives are repeated)
+        directive @ (BlockAllMixedContent
+        | UpgradeInsecureRequests
+        | RequireSriFor(_)
+        | ReportUri(_)
+        | ReportTo(_)) => {
+            // check if directive already exists, skip adding this one if so.
+          if out.iter().any(|x| core::mem::discriminant(x) == core::mem::discriminant(&directive))
+          {
+            continue;
+          } else {
+            out.push(directive);
+          }
+        }
+      }
+    }
+
+    CSP(out)
+  }
 }
 
 impl<'a> Sources<'a> {
@@ -554,6 +805,15 @@ impl<'a> Sources<'a> {
   pub fn push(mut self, source: Source<'a>) -> Self {
     self.0.push(source);
     self
+  }
+
+  /// Add all unique sources from `other` into `self`, preserving order.
+  pub fn extend_unique(&mut self, other: Sources<'a>) {
+    for s in other.0 {
+      if !self.0.contains(&s) {
+        self.0.push(s);
+      }
+    }
   }
 }
 
@@ -597,6 +857,14 @@ impl<'a> Plugins<'a> {
     self.0.push(plugin);
     self
   }
+
+  pub fn extend_unique(&mut self, other: Plugins<'a>) {
+    for s in other.0 {
+      if !self.0.contains(&s) {
+        self.0.push(s);
+      }
+    }
+  }
 }
 
 impl SandboxAllowedList {
@@ -639,6 +907,14 @@ impl SandboxAllowedList {
   pub fn push(mut self, sandbox_allow: SandboxAllow) -> Self {
     self.0.push(sandbox_allow);
     self
+  }
+
+  pub fn extend_unique(&mut self, other: SandboxAllowedList) {
+    for s in other.0 {
+      if !self.0.contains(&s) {
+        self.0.push(s);
+      }
+    }
   }
 }
 
@@ -979,5 +1255,44 @@ mod tests {
 
     let csp = CSP::new_with(Directive::UpgradeInsecureRequests);
     assert_eq!(csp.to_string(), "upgrade-insecure-requests");
+  }
+
+  #[test]
+  fn repeated_directive_normalization() {
+    let mut csp = CSP::new();
+
+    csp.push_borrowed(Directive::ConnectSrc(Sources::new_with(Source::Self_)));
+    csp.push_borrowed(Directive::ConnectSrc(Sources::new_with(Source::Host(
+      "https://example.org",
+    ))));
+
+    csp.push_borrowed(Directive::ScriptSrc(Sources::new_with(Source::Nonce("abc"))));
+    csp.push_borrowed(Directive::ScriptSrc(Sources::new_with(Source::Self_)));
+
+    assert_eq!(
+      csp.normalize().to_string(),
+      "connect-src 'self' https://example.org; script-src 'nonce-abc' 'self'"
+    );
+  }
+
+  #[test]
+  fn repeated_duplicate_directives_are_removed() {
+    let mut csp = CSP::new();
+
+    csp.push_borrowed(Directive::ConnectSrc(Sources::new_with(Source::Self_)));
+
+    csp.push_borrowed(Directive::ConnectSrc(Sources::new_with(Source::Self_)));
+
+    assert_eq!(csp.normalize().to_string(), "connect-src 'self'");
+  }
+
+  #[test]
+  fn repeated_non_mergeable_directive_first_wins() {
+    let mut csp = CSP::new();
+
+    csp.push_borrowed(Directive::RequireSriFor(SriFor::Script));
+    csp.push_borrowed(Directive::RequireSriFor(SriFor::Style));
+
+    assert_eq!(csp.normalize().to_string(), "require-sri-for script");
   }
 }
