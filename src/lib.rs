@@ -4,7 +4,7 @@
 //! This library can help you when you don't want to remember some weird
 //! formatting rules of CSP, and want to avoid typos. And it certainly can be
 //! handy if you need to re-use things, for example a list of sources (just
-//! .clone() them everywhere and you're good to go!).
+//! `.clone()` them everywhere and you're good to go!).
 //!
 //! WARNING: this library does not care if you create invalid CSP rules, and
 //! happily allows them and turns them into Strings. But it does force you to
@@ -276,11 +276,11 @@ pub enum Directive<'a> {
   /// that are restricted are:
   ///
   /// - `<a>` ping,
-  /// - Fetch,
-  /// - XMLHttpRequest,
-  /// - WebSocket,
-  /// - EventSource,
-  /// - Navigator.sendBeacon().
+  /// - `Fetch`,
+  /// - `XMLHttpRequest`,
+  /// - `WebSocket`,
+  /// - `EventSource`,
+  /// - `Navigator.sendBeacon()`.
   ///
   /// Note: connect-src 'self' does not resolve to websocket schemas in all browsers, more info: <https://github.com/w3c/webappsec-csp/issues/7>
   ConnectSrc(Sources<'a>),
@@ -344,7 +344,7 @@ pub enum Directive<'a> {
   /// elements.
   ///
   /// To set allowed types for `<object>`, `<embed>`, and `<applet>` elements,
-  /// use the PluginTypes.
+  /// use the `PluginTypes` [`Directive`].
   ///
   /// Elements controlled by object-src are perhaps coincidentally considered
   /// legacy HTML elements and aren't receiving new standardized features
@@ -407,7 +407,7 @@ pub enum Directive<'a> {
   /// preventing the execution of plugins and scripts, and enforcing a
   /// same-origin policy.
   ///
-  /// You can leave the SandboxAllowedList empty
+  /// You can leave the [`SandboxAllowedList`] empty
   /// (`SandboxAllowedList::new_empty()`) to disallow everything.
   Sandbox(SandboxAllowedList),
   /// Specifies valid sources for JavaScript.
@@ -514,8 +514,10 @@ impl<'a> CSP<'a> {
     self
   }
 
-  /// Merge duplicate directives. For directives that carry repeated entries, the entries are
-  /// unioned (no duplicates); for other directives, the *first* wins.
+  #[must_use]
+  /// Merge duplicate directives. For directives that carry repeated entries,
+  /// the entries are unioned (no duplicates); for other directives, the
+  /// *first* wins.
   pub fn normalize(self) -> Self {
     use Directive::*;
     let mut out: Vec<Directive<'a>> = Vec::with_capacity(self.0.len());
@@ -745,19 +747,21 @@ impl<'a> CSP<'a> {
           }
         }
 
-        // For non sources cases, they can't be merged so we keep the *first* instance (same as the spec if directives are repeated)
+        // For non sources cases, they can't be merged so we keep the *first* instance
+        // (same as the spec if directives are repeated)
         directive @ (BlockAllMixedContent
         | UpgradeInsecureRequests
         | RequireSriFor(_)
         | ReportUri(_)
         | ReportTo(_)) => {
-            // check if directive already exists, skip adding this one if so.
-          if out.iter().any(|x| core::mem::discriminant(x) == core::mem::discriminant(&directive))
+          // check if directive already exists, skip adding this one if so.
+          if out
+            .iter()
+            .any(|x| core::mem::discriminant(x) == core::mem::discriminant(&directive))
           {
             continue;
-          } else {
-            out.push(directive);
           }
+          out.push(directive);
         }
       }
     }
@@ -808,7 +812,7 @@ impl<'a> Sources<'a> {
   }
 
   /// Add all unique sources from `other` into `self`, preserving order.
-  pub fn extend_unique(&mut self, other: Sources<'a>) {
+  pub fn extend_unique(&mut self, other: Self) {
     for s in other.0 {
       if !self.0.contains(&s) {
         self.0.push(s);
@@ -858,7 +862,8 @@ impl<'a> Plugins<'a> {
     self
   }
 
-  pub fn extend_unique(&mut self, other: Plugins<'a>) {
+  /// Add all unique sources from `other` into `self`, preserving order.
+  pub fn extend_unique(&mut self, other: Self) {
     for s in other.0 {
       if !self.0.contains(&s) {
         self.0.push(s);
@@ -909,7 +914,8 @@ impl SandboxAllowedList {
     self
   }
 
-  pub fn extend_unique(&mut self, other: SandboxAllowedList) {
+  /// Add all unique sources from `other` into `self`, preserving order.
+  pub fn extend_unique(&mut self, other: Self) {
     for s in other.0 {
       if !self.0.contains(&s) {
         self.0.push(s);
@@ -960,18 +966,18 @@ impl<'a> ReportUris<'a> {
   }
 }
 
-impl<'a> fmt::Display for Source<'a> {
+impl fmt::Display for Source<'_> {
   fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
     match self {
-      Self::Host(s) => write!(fmt, "{}", s),
-      Self::Scheme(s) => write!(fmt, "{}:", s),
+      Self::Host(s) => write!(fmt, "{s}"),
+      Self::Scheme(s) => write!(fmt, "{s}:"),
       Self::Self_ => write!(fmt, "'self'"),
       Self::UnsafeEval => write!(fmt, "'unsafe-eval'"),
       Self::WasmUnsafeEval => write!(fmt, "'wasm-unsafe-eval'"),
       Self::UnsafeHashes => write!(fmt, "'unsafe-hashes'"),
       Self::UnsafeInline => write!(fmt, "'unsafe-inline'"),
-      Self::Nonce(s) => write!(fmt, "'nonce-{}'", s),
-      Self::Hash((algo, hash)) => write!(fmt, "'{}-{}'", algo, hash),
+      Self::Nonce(s) => write!(fmt, "'nonce-{s}'"),
+      Self::Hash((algo, hash)) => write!(fmt, "'{algo}-{hash}'"),
       Self::StrictDynamic => write!(fmt, "'strict-dynamic'"),
       Self::ReportSample => write!(fmt, "'report-sample'"),
     }
@@ -1014,70 +1020,76 @@ impl fmt::Display for SriFor {
   }
 }
 
-impl<'a> fmt::Display for Directive<'a> {
+impl fmt::Display for Directive<'_> {
   fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
     match self {
-      Self::BaseUri(s) => write!(fmt, "base-uri {}", s),
+      Self::BaseUri(s) => write!(fmt, "base-uri {s}"),
       Self::BlockAllMixedContent => write!(fmt, "block-all-mixed-content"),
-      Self::ChildSrc(s) => write!(fmt, "child-src {}", s),
-      Self::ConnectSrc(s) => write!(fmt, "connect-src {}", s),
-      Self::DefaultSrc(s) => write!(fmt, "default-src {}", s),
-      Self::FontSrc(s) => write!(fmt, "font-src {}", s),
-      Self::FormAction(s) => write!(fmt, "form-action {}", s),
-      Self::FrameAncestors(s) => write!(fmt, "frame-ancestors {}", s),
-      Self::FrameSrc(s) => write!(fmt, "frame-src {}", s),
-      Self::ImgSrc(s) => write!(fmt, "img-src {}", s),
-      Self::ManifestSrc(s) => write!(fmt, "manifest-src {}", s),
-      Self::MediaSrc(s) => write!(fmt, "media-src {}", s),
-      Self::NavigateTo(s) => write!(fmt, "navigate-to {}", s),
-      Self::ObjectSrc(s) => write!(fmt, "object-src {}", s),
-      Self::PluginTypes(s) => write!(fmt, "plugin-types {}", s),
-      Self::PrefetchSrc(s) => write!(fmt, "prefetch-src {}", s),
-      Self::ReportTo(s) => write!(fmt, "report-to {}", s),
+      Self::ChildSrc(s) => write!(fmt, "child-src {s}"),
+      Self::ConnectSrc(s) => write!(fmt, "connect-src {s}"),
+      Self::DefaultSrc(s) => write!(fmt, "default-src {s}"),
+      Self::FontSrc(s) => write!(fmt, "font-src {s}"),
+      Self::FormAction(s) => write!(fmt, "form-action {s}"),
+      Self::FrameAncestors(s) => write!(fmt, "frame-ancestors {s}"),
+      Self::FrameSrc(s) => write!(fmt, "frame-src {s}"),
+      Self::ImgSrc(s) => write!(fmt, "img-src {s}"),
+      Self::ManifestSrc(s) => write!(fmt, "manifest-src {s}"),
+      Self::MediaSrc(s) => write!(fmt, "media-src {s}"),
+      Self::NavigateTo(s) => write!(fmt, "navigate-to {s}"),
+      Self::ObjectSrc(s) => write!(fmt, "object-src {s}"),
+      Self::PluginTypes(s) => write!(fmt, "plugin-types {s}"),
+      Self::PrefetchSrc(s) => write!(fmt, "prefetch-src {s}"),
+      Self::ReportTo(s) => write!(fmt, "report-to {s}"),
       Self::ReportUri(uris) => {
+        if uris.0.is_empty() {
+          return Ok(());
+        }
         write!(fmt, "report-uri ")?;
 
         for uri in &uris.0[0..uris.0.len() - 1] {
-          write!(fmt, "{} ", uri)?;
+          write!(fmt, "{uri} ")?;
         }
 
         let last = uris.0[uris.0.len() - 1];
-        write!(fmt, "{}", last)
+        write!(fmt, "{last}")
       }
-      Self::RequireSriFor(s) => write!(fmt, "require-sri-for {}", s),
+      Self::RequireSriFor(s) => write!(fmt, "require-sri-for {s}"),
       Self::Sandbox(s) => {
         if s.0.is_empty() {
           write!(fmt, "sandbox")
         } else {
-          write!(fmt, "sandbox {}", s)
+          write!(fmt, "sandbox {s}")
         }
       }
-      Self::ScriptSrc(s) => write!(fmt, "script-src {}", s),
-      Self::ScriptSrcAttr(s) => write!(fmt, "script-src-attr {}", s),
-      Self::ScriptSrcElem(s) => write!(fmt, "script-src-elem {}", s),
-      Self::StyleSrc(s) => write!(fmt, "style-src {}", s),
-      Self::StyleSrcAttr(s) => write!(fmt, "style-src-attr {}", s),
-      Self::StyleSrcElem(s) => write!(fmt, "style-src-elem {}", s),
+      Self::ScriptSrc(s) => write!(fmt, "script-src {s}"),
+      Self::ScriptSrcAttr(s) => write!(fmt, "script-src-attr {s}"),
+      Self::ScriptSrcElem(s) => write!(fmt, "script-src-elem {s}"),
+      Self::StyleSrc(s) => write!(fmt, "style-src {s}"),
+      Self::StyleSrcAttr(s) => write!(fmt, "style-src-attr {s}"),
+      Self::StyleSrcElem(s) => write!(fmt, "style-src-elem {s}"),
       Self::TrustedTypes(trusted_types) => {
+        if trusted_types.is_empty() {
+          return Ok(());
+        }
         write!(fmt, "trusted-types ")?;
 
         for trusted_type in &trusted_types[0..trusted_types.len() - 1] {
-          write!(fmt, "{} ", trusted_type)?;
+          write!(fmt, "{trusted_type} ")?;
         }
 
         let last = trusted_types[trusted_types.len() - 1];
-        write!(fmt, "{}", last)
+        write!(fmt, "{last}")
       }
       Self::UpgradeInsecureRequests => write!(fmt, "upgrade-insecure-requests"),
-      Self::WorkerSrc(s) => write!(fmt, "worker-src {}", s),
+      Self::WorkerSrc(s) => write!(fmt, "worker-src {s}"),
     }
   }
 }
 
-impl<'a> fmt::Display for Plugins<'a> {
+impl fmt::Display for Plugins<'_> {
   fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
     if self.0.is_empty() {
-      return write!(fmt, "");
+      return Ok(());
     }
 
     for plugin in &self.0[0..self.0.len() - 1] {
@@ -1089,48 +1101,48 @@ impl<'a> fmt::Display for Plugins<'a> {
   }
 }
 
-impl<'a> fmt::Display for Sources<'a> {
+impl fmt::Display for Sources<'_> {
   fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
     if self.0.is_empty() {
       return write!(fmt, "'none'");
     }
 
     for source in &self.0[0..self.0.len() - 1] {
-      write!(fmt, "{} ", source)?;
+      write!(fmt, "{source} ")?;
     }
 
     let last = &self.0[self.0.len() - 1];
-    write!(fmt, "{}", last)
+    write!(fmt, "{last}")
   }
 }
 
 impl fmt::Display for SandboxAllowedList {
   fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
     if self.0.is_empty() {
-      return write!(fmt, "");
+      return Ok(());
     }
 
     for directive in &self.0[0..self.0.len() - 1] {
-      write!(fmt, "{} ", directive)?;
+      write!(fmt, "{directive} ")?;
     }
 
     let last = &self.0[self.0.len() - 1];
-    write!(fmt, "{}", last)
+    write!(fmt, "{last}")
   }
 }
 
-impl<'a> fmt::Display for CSP<'a> {
+impl fmt::Display for CSP<'_> {
   fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
     if self.0.is_empty() {
-      return write!(fmt, "");
+      return Ok(());
     }
 
     for directive in &self.0[0..self.0.len() - 1] {
-      write!(fmt, "{}; ", directive)?;
+      write!(fmt, "{directive}; ")?;
     }
 
     let last = &self.0[self.0.len() - 1];
-    write!(fmt, "{}", last)
+    write!(fmt, "{last}")
   }
 }
 
@@ -1161,7 +1173,7 @@ mod tests {
 
     csp.push_borrowed(Directive::FontSrc(Sources::new_with(font_src)));
 
-    println!("{}", csp);
+    println!("{csp}");
 
     let csp = csp.to_string();
 
@@ -1255,6 +1267,18 @@ mod tests {
 
     let csp = CSP::new_with(Directive::UpgradeInsecureRequests);
     assert_eq!(csp.to_string(), "upgrade-insecure-requests");
+  }
+
+  #[test]
+  fn empty_trusted_types() {
+    let csp = CSP::new_with(Directive::TrustedTypes(vec![]));
+    assert_eq!(csp.to_string(), "");
+  }
+
+  #[test]
+  fn empty_report_uri() {
+    let csp = CSP::new_with(Directive::ReportUri(ReportUris::new()));
+    assert_eq!(csp.to_string(), "");
   }
 
   #[test]
