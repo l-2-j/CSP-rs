@@ -1,15 +1,15 @@
 [package]
 name = "csp"
-version = "2.1.0"
+version = "3.0.0"
 description = "A small Content Security Policy creation helper."
 keywords = ["CSP"]
 categories = ["config", "web-programming"]
 
 license = "MIT"
-repository = "https://github.com/ljoonal/CSP-rs"
-authors = ["ljoonal"]
+repository = "https://github.com/l-2-j/CSP-rs"
+authors = ["LJ"]
 
-edition = "2021"
+edition = "2024"
 
 [badges]
 maintenance = { status = "passively-maintained" }
